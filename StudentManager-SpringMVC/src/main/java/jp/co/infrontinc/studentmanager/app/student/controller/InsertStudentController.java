@@ -77,6 +77,17 @@ public class InsertStudentController extends AbstractStudentController {
 		
 		sessionStatus.setComplete();
 		
+		return "redirect:/student/insertComplete"; //PRGパターン実装
+	}
+	
+	/**
+	 * 登録完了画面表示（PRGパターン実装）
+	 * 
+	 * @param studentP
+	 * @return
+	 */
+	@GetMapping("insertComplete")	
+	public String do_insertComplete(StudentP studentP) {
 		return "student/insertCompleteStudent";
 	}
 }
