@@ -1,7 +1,6 @@
 package jp.co.infrontinc.studentmanager.app.student.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,10 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.SessionAttributes;
 
 import jp.co.infrontinc.studentmanager.app.student.model.StudentCP;
-import jp.co.infrontinc.studentmanager.domain.common.code.PrefCodeMaster;
 import jp.co.infrontinc.studentmanager.domain.student.model.Student;
 import jp.co.infrontinc.studentmanager.domain.student.model.StudentC;
-import jp.co.infrontinc.studentmanager.domain.student.service.StudentService;
 
 /**
  * 生徒情報登録コントローラ
@@ -26,7 +23,7 @@ import jp.co.infrontinc.studentmanager.domain.student.service.StudentService;
 @Controller
 @RequestMapping("student")
 @SessionAttributes("studentCP")
-public class ShowListStudentController {
+public class ShowListStudentController extends AbstractStudentController {
 	
 	/**
 	 * プレゼンテーションモデルの初期化
@@ -36,16 +33,6 @@ public class ShowListStudentController {
 	@ModelAttribute
 	public StudentCP setupStudent() {
 		return new StudentCP();
-	}
-	
-	/**
-	 * 都道府県コードマスタの初期設定
-	 * 
-	 * @return
-	 */
-	@ModelAttribute("CL_PREF")
-	public Map<Integer, String> setupPrefCodeList() {
-		return new PrefCodeMaster().getMap();
 	}
 	
 	/**
@@ -78,8 +65,8 @@ public class ShowListStudentController {
 	public String do_showList(StudentCP studentCP, Model model) throws Exception {
 		
 		StudentC studentC = StudentModelHelper.p2s(studentCP);
-		StudentService service = new StudentService();
-		List<Student> studentList = service.findByCondition(studentC);
+		
+		List<Student> studentList = studentService.findByCondition(studentC);
 		
 		model.addAttribute("studentList", studentList);
 		studentCP.setSearched(true);

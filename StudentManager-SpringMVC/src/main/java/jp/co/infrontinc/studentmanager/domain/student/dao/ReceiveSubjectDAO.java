@@ -4,6 +4,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.List;
 
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.stereotype.Component;
+
+import jp.co.infrontinc.studentmanager.domain.common.exception.SystemException;
 import jp.co.infrontinc.studentmanager.domain.common.util.DBUtils;
 import jp.co.infrontinc.studentmanager.domain.student.model.ReceiveSubject;
 
@@ -13,22 +20,23 @@ import jp.co.infrontinc.studentmanager.domain.student.model.ReceiveSubject;
  * @author infront
  *
  */
+@Component
 public class ReceiveSubjectDAO {
 	
-	public ReceiveSubjectDAO() throws Exception {
-		
-		// JDBCを利用するための準備
-		DBUtils.initJDBC();
-	}
+	/** データソース */
+	@Autowired
+	private DataSource dataSource;
 	
 	/**
 	 * 生徒別履修教科のデータ登録
 	 * 
 	 * @param conn
 	 * @param receiveSubject
-	 * @throws Exception
 	 */
-	public void insert(Connection conn, ReceiveSubject rsub) throws Exception {
+	public void insert(ReceiveSubject rsub) {
+		
+		// データソースからコネクションを取得
+		Connection conn = DataSourceUtils.getConnection(dataSource);
 		
 		StringBuilder sql = new StringBuilder();
 		sql.append(" INSERT INTO t_receive_subject(  ");
@@ -53,9 +61,9 @@ public class ReceiveSubjectDAO {
 		}
 		catch(Exception e) {
 			
-			System.out.println("ReceiveSubjectDAO.insertの実行に失敗しました。");
-			throw e;
-		
+			throw new SystemException(
+					ReceiveSubjectDAO.class, 
+					"insertの実行に失敗しました。",e);
 		}
 		finally {
 			// ステートメントオブジェクトの破棄
@@ -70,24 +78,25 @@ public class ReceiveSubjectDAO {
 	 * @param conn
 	 * @param id
 	 * @param receiveSubjectList
-	 * @throws Exception
 	 */
-	public void updateByStudentId(Connection conn, Integer id, List<ReceiveSubject> receiveSubjectList) throws Exception {
+	public void updateByStudentId(Integer id, List<ReceiveSubject> receiveSubjectList) {
 		
 		try {
 			
-			deleteByStudentId(conn, id);
+			deleteByStudentId(id);
 			
 			for (ReceiveSubject rsub : receiveSubjectList) {
 				rsub.setStudentId(id);
-				insert(conn, rsub);
+				insert(rsub);
 			}
 			
 		}
 		catch(Exception e) {
 			
-			System.out.println("ReceiveSubjectDAO.updateの実行に失敗しました。");
-			throw e;
+			throw new SystemException(
+					ReceiveSubjectDAO.class, 
+					"updateの実行に失敗しました。",e);
+			
 		}
 	}
 	
@@ -96,10 +105,11 @@ public class ReceiveSubjectDAO {
 	 * 
 	 * @param conn
 	 * @param id
-	 * @throws Exception
 	 */
-	public void deleteByStudentId(Connection conn, Integer id) throws Exception {
+	public void deleteByStudentId(Integer id) {
 			
+		Connection conn = DataSourceUtils.getConnection(dataSource);
+		
 		PreparedStatement stmt = null;
 		
 		try {
@@ -118,8 +128,9 @@ public class ReceiveSubjectDAO {
 		}
 		catch(Exception e) {
 			
-			System.out.println("ReceiveSubjectDAO.deleteの実行に失敗しました。");
-			throw e;
+			throw new SystemException(
+					ReceiveSubjectDAO.class, 
+					"deleteの実行に失敗しました。",e);
 		
 		}
 		finally {

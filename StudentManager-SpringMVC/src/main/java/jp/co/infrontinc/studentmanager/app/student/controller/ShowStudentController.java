@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import jp.co.infrontinc.studentmanager.domain.student.model.Student;
-import jp.co.infrontinc.studentmanager.domain.student.service.StudentService;
 
 /**
  * 生徒情報詳細コントローラ
@@ -16,7 +15,7 @@ import jp.co.infrontinc.studentmanager.domain.student.service.StudentService;
  */
 @Controller
 @RequestMapping("student")
-public class ShowStudentController {
+public class ShowStudentController extends AbstractStudentController {
 	
 	/**
 	 * 詳細画面表示
@@ -30,8 +29,7 @@ public class ShowStudentController {
 	public String do_show(@RequestParam("studentId") String studentId, Model model) throws Exception {
 	//public String do_show(Integer studentId, Model model) throws Exception { 変数名が一致していればこれでも可
 		
-		StudentService service = new StudentService();
-		Student student = service.findById(Integer.valueOf(studentId));
+		Student student = studentService.findById(Integer.valueOf(studentId));
 		System.out.println(student);
 		
 		//本来、ストアモデル→プレゼンモデルの変換が必要

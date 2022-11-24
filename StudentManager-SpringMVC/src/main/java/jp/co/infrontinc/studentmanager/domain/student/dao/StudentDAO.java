@@ -9,6 +9,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.stereotype.Component;
+
+import jp.co.infrontinc.studentmanager.domain.common.exception.SystemException;
 import jp.co.infrontinc.studentmanager.domain.common.util.DBUtils;
 import jp.co.infrontinc.studentmanager.domain.common.util.MyDateUtils;
 import jp.co.infrontinc.studentmanager.domain.common.util.MySQLUtils;
@@ -23,13 +30,12 @@ import jp.co.infrontinc.studentmanager.domain.student.model.StudentC;
  * @author infront
  *
  */
+@Component
 public class StudentDAO {
 	
-	public StudentDAO() throws Exception {
-		
-		// JDBCを利用するための準備
-		DBUtils.initJDBC();
-	}
+	/** データソース */
+	@Autowired
+	private DataSource dataSource;
 	
 	/**
 	 * 条件検索
@@ -37,9 +43,10 @@ public class StudentDAO {
 	 * @param conn
 	 * @param pcond
 	 * @return studentList
-	 * @throws Exception
 	 */
-	public List<Student> findByCondition(Connection conn, StudentC pcond) throws Exception {
+	public List<Student> findByCondition(StudentC pcond) {
+		
+		Connection conn = DataSourceUtils.getConnection(dataSource);
 		
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -144,9 +151,9 @@ public class StudentDAO {
 		}
 		catch (SQLException e) {
 			
-			System.out.println("StudentDAO.findByConditionの実行に失敗しました。");
-			throw e;
-			
+			throw new SystemException(
+					StudentDAO.class, 
+					"findByConditionの実行に失敗しました。",e);
 		}
 		finally {
 			// 結果セットの破棄
@@ -162,16 +169,15 @@ public class StudentDAO {
 	 * @param conn
 	 * @param id
 	 * @return student
-	 * @throws Exception
 	 */
-	public Student findById(Connection conn, Integer id) throws Exception  {
+	public Student findById(Integer id) {
 		
 		try {
 			
 			StudentC cond = new StudentC();
 			cond.setStudentId(id);
 			
-			List<Student> studentList = findByCondition(conn, cond);
+			List<Student> studentList = findByCondition(cond);
 			if (studentList.size() == 0) {
 				return null;
 			}
@@ -180,8 +186,9 @@ public class StudentDAO {
 		}
 		catch(Exception e) {
 			
-			System.out.println("StudentDAO.findByIdの実行に失敗しました。");
-			throw e;
+			throw new SystemException(
+					StudentDAO.class, 
+					"findByIdの実行に失敗しました。",e);
 		}
 	}
 		
@@ -190,15 +197,16 @@ public class StudentDAO {
 	 * 
 	 * @param conn
 	 * @param student
-	 * @throws Exception
 	 */
-	public void insert(Connection conn, Student student) throws Exception {
+	public void insert(Student student) {
 			
+		Connection conn = DataSourceUtils.getConnection(dataSource);
+		
 		PreparedStatement stmt = null;
 		
 		try {
 			
-			int studentId = getStudentIdFromSeq(conn);
+			int studentId = getStudentIdFromSeq();
 			student.setStudentId(studentId);
 			
 			// SQL文を構築
@@ -233,8 +241,9 @@ public class StudentDAO {
 		}
 		catch(Exception e) {
 			
-			System.out.println("StudentDAO.insertの実行に失敗しました。");
-			throw e;
+			throw new SystemException(
+					StudentDAO.class, 
+					"insertの実行に失敗しました。",e);
 		
 		}
 		finally {
@@ -248,9 +257,10 @@ public class StudentDAO {
 	 * 
 	 * @param conn
 	 * @return studentId(rs.getInt("nextval"))
-	 * @throws Exception
 	 */
-	public int getStudentIdFromSeq(Connection conn) throws Exception  {
+	public int getStudentIdFromSeq() {
+		
+		Connection conn = DataSourceUtils.getConnection(dataSource);
 		
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -269,9 +279,9 @@ public class StudentDAO {
 		}
 		catch(Exception e) {
 			
-			System.out.println("StudentDAO.getStudentIdFromSeq()でエラーが発生しました。");
-			throw e;
-			
+			throw new SystemException(
+					StudentDAO.class, 
+					"getStudentIdFromSeqの実行に失敗しました。",e);
 		}
 		finally {
 			// 結果セットの破棄
@@ -287,10 +297,11 @@ public class StudentDAO {
 	 * 
 	 * @param conn
 	 * @param student
-	 * @throws Exception
 	 */
-	public void update(Connection conn, Student student) throws Exception {
+	public void update(Student student) {
 			
+		Connection conn = DataSourceUtils.getConnection(dataSource);
+		
 		PreparedStatement stmt = null;
 		
 		try {
@@ -313,15 +324,17 @@ public class StudentDAO {
 			// UPDATE文を実行 / 更新失敗(更新件数0件以下)の場合エラーを投げる
 			int ret = stmt.executeUpdate();
 			if (ret <= 0) {
-				throw new Exception("生徒情報の更新に失敗しました：" + student.toString());
+				throw new SystemException(
+						StudentDAO.class, 
+						"生徒情報の更新に失敗しました：" + student.toString());
 			}
 			
 		}
 		catch(Exception e) {
 			
-			System.out.println("StudentDAO.updateの実行に失敗しました。");
-			throw e;
-		
+			throw new SystemException(
+					StudentDAO.class, 
+					"updateの実行に失敗しました。",e);
 		}
 		finally {
 			// ステートメントオブジェクトの破棄
@@ -335,10 +348,11 @@ public class StudentDAO {
 	 * 
 	 * @param conn
 	 * @param id
-	 * @throws Exception
 	 */
-	public void delete(Connection conn, Integer id) throws Exception {
+	public void delete(Integer id) {
 			
+		Connection conn = DataSourceUtils.getConnection(dataSource);
+		
 		PreparedStatement stmt = null;
 		
 		try {
@@ -357,9 +371,9 @@ public class StudentDAO {
 		}
 		catch(Exception e) {
 			
-			System.out.println("StudentDAO.deleteの実行に失敗しました。");
-			throw e;
-		
+			throw new SystemException(
+					StudentDAO.class, 
+					"deleteの実行に失敗しました。", e);
 		}
 		finally {
 			// ステートメントオブジェクトの破棄
